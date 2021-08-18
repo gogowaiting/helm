@@ -21,10 +21,12 @@ import (
 	"io"
 	"log"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v3/cmd/helm/require"
 	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chart/loader"
 )
 
 const showDesc = `
@@ -83,6 +85,10 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:              require.ExactArgs(1),
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			//CheckKey
+			if !loader.CheckKey(key) {
+				return errors.New("Unauthorized operation.")
+			}
 			client.OutputFormat = action.ShowAll
 			err := addRegistryClient(client)
 			if err != nil {
@@ -104,6 +110,10 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:              require.ExactArgs(1),
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			//CheckKey
+			if !loader.CheckKey(key) {
+				return errors.New("Unauthorized operation.")
+			}
 			client.OutputFormat = action.ShowValues
 			err := addRegistryClient(client)
 			if err != nil {
@@ -125,6 +135,10 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:              require.ExactArgs(1),
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			//CheckKey
+			if !loader.CheckKey(key) {
+				return errors.New("Unauthorized operation.")
+			}
 			client.OutputFormat = action.ShowChart
 			err := addRegistryClient(client)
 			if err != nil {
@@ -146,6 +160,10 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		Args:              require.ExactArgs(1),
 		ValidArgsFunction: validArgsFunc,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			//CheckKey
+			if !loader.CheckKey(key) {
+				return errors.New("Unauthorized operation.")
+			}
 			client.OutputFormat = action.ShowReadme
 			err := addRegistryClient(client)
 			if err != nil {
@@ -186,6 +204,7 @@ func newShowCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 		addShowFlags(subCmd, client)
 		showCommand.AddCommand(subCmd)
 	}
+	showCommand.Flags().StringVar(&key, "key", "", "key for authorization operation")
 
 	return showCommand
 }

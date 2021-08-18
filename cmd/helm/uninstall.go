@@ -21,10 +21,12 @@ import (
 	"io"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"helm.sh/helm/v3/cmd/helm/require"
 	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chart/loader"
 )
 
 const uninstallDesc = `
@@ -38,6 +40,7 @@ uninstalling them.
 `
 
 func newUninstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
+	var key string
 	client := action.NewUninstall(cfg)
 
 	cmd := &cobra.Command{
@@ -54,6 +57,9 @@ func newUninstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			validationErr := validateCascadeFlag(client)
 			if validationErr != nil {
 				return validationErr
+			}
+			if !loader.CheckDeleteKey(key) {
+				return errors.New("Unauthorized operation.")
 			}
 			for i := 0; i < len(args); i++ {
 
@@ -80,6 +86,7 @@ func newUninstallCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 	f.StringVar(&client.DeletionPropagation, "cascade", "background", "Must be \"background\", \"orphan\", or \"foreground\". Selects the deletion cascading strategy for the dependents. Defaults to background.")
 	f.DurationVar(&client.Timeout, "timeout", 300*time.Second, "time to wait for any individual Kubernetes operation (like Jobs for hooks)")
 	f.StringVar(&client.Description, "description", "", "add a custom description")
+	f.StringVar(&key, "key", "", "key for authorization operation")
 
 	return cmd
 }

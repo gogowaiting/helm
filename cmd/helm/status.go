@@ -24,12 +24,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"k8s.io/kubectl/pkg/cmd/get"
 
 	"helm.sh/helm/v3/cmd/helm/require"
 	"helm.sh/helm/v3/pkg/action"
+	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/chartutil"
 	"helm.sh/helm/v3/pkg/cli/output"
 	"helm.sh/helm/v3/pkg/release"
@@ -52,6 +54,7 @@ The status consists of:
 func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 	client := action.NewStatus(cfg)
 	var outfmt output.Format
+	var key string
 
 	cmd := &cobra.Command{
 		Use:   "status RELEASE_NAME",
@@ -71,6 +74,10 @@ func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 			// returned. This mirrors the handling in kubectl.
 			if outfmt == output.Table {
 				client.ShowResourcesTable = true
+			}
+			//CheckKey
+			if !loader.CheckKey(key) {
+				return errors.New("Unauthorized operation.")
 			}
 			rel, err := client.Run(args[0])
 			if err != nil {
@@ -101,6 +108,7 @@ func newStatusCmd(cfg *action.Configuration, out io.Writer) *cobra.Command {
 
 	bindOutputFlag(cmd, &outfmt)
 	f.BoolVar(&client.ShowDescription, "show-desc", false, "if set, display the description message of the named release")
+	f.StringVar(&key, "key", "", "key for authorization operation")
 
 	f.BoolVar(&client.ShowResources, "show-resources", false, "if set, display the resources of the named release")
 

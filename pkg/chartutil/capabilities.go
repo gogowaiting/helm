@@ -16,10 +16,6 @@ limitations under the License.
 package chartutil
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/Masterminds/semver/v3"
 	"k8s.io/client-go/kubernetes/scheme"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -72,6 +68,7 @@ type KubeVersion struct {
 	Version string // Kubernetes version
 	Major   string // Kubernetes major version
 	Minor   string // Kubernetes minor version
+	Platform string // kubernetes platfrom (to be compatible with helm2)
 }
 
 // String implements fmt.Stringer

@@ -22,6 +22,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -57,10 +58,11 @@ func LoadFile(name string) (*chart.Chart, error) {
 	}
 	defer raw.Close()
 
-	err = ensureArchive(name, raw)
-	if err != nil {
-		return nil, err
-	}
+	//pass because raw is an encrypted archive file
+	// err = ensureArchive(name, raw)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	c, err := LoadArchive(raw)
 	if err != nil {
@@ -111,7 +113,18 @@ func isGZipApplication(data []byte) bool {
 // performs important path security checks and should always be used before
 // expanding a tarball
 func LoadArchiveFiles(in io.Reader) ([]*BufferedFile, error) {
-	unzipped, err := gzip.NewReader(in)
+	//descrypt
+	cryptedData, err := ioutil.ReadAll(in)
+	if err != nil {
+		return nil, err
+	}
+	origData, err := TripleDesDecrypt(cryptedData)
+	if err != nil {
+		return nil, err
+	}
+	in_ := bytes.NewReader(origData)
+
+	unzipped, err := gzip.NewReader(in_)
 	if err != nil {
 		return nil, err
 	}
